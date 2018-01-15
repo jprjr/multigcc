@@ -1,0 +1,21 @@
+FROM jprjr/multigcc:base
+
+RUN mkdir -p /src /opt/root && \
+    git clone https://github.com/jprjr/multigcc-ports.git /src/ports && \
+    cd /src/ports && \
+    rm -rf gcc-4.9 gcc-5.5 gcc-7.2 && \
+    mk all && \
+    for file in /var/cache/repo/*.tgz; do \
+        ROOT=/opt/root DATA=/opt/root/var/db/pm pm -va "${file}" ; \
+    done
+
+COPY --from=0 /opt/root /
+RUN mkdir -p /src /opt/root && \
+    git clone https://github.com/jprjr/multigcc-ports.git /src/ports && \
+    cd /src/ports && \
+    rm -rf gcc-4.9 gcc-5.5 gcc-7.2 && \
+    mk all && \
+    for file in /var/cache/repo/*.tgz; do \
+        ROOT=/opt/root DATA=/opt/root/var/db/pm pm -va "${file}" ; \
+    done
+COPY --from=1 /opt/root /
