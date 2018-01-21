@@ -8,11 +8,12 @@ Note: I distribute what I can for OSX compilation, however,
 I can't distribute the OSX SDKs.
 
 In order for OSX to work, you'll need to mount the SDK in
-as a volume, at /usr/apple/SDK/, ie:
+as a volume, at /opt/sdk, ie:
 
-`-v /opt/sdks/MacOSX10.10.sdk:/usr/apple/SDK/MacOSX10.10.sdk`
+`-v /opt/sdks/MacOSX10.10.sdk:/opt/sdk/MacOSX10.10.sdk:ro`
 
-To bring in the OSX 10.10 SDK to the right folder.
+At start-up, the container will stow the SDK into the
+filesystem, meaning your original SDK folder remains untouched.
 
 The osxcross project has tools for extracting the required SDK
 from XCode: https://github.com/tpoechtrager/osxcross
