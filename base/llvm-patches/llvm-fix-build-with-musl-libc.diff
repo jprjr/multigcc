@@ -1,0 +1,31 @@
+diff --git a/include/llvm/Analysis/TargetLibraryInfo.h b/include/llvm/Analysis/TargetLibraryInfo.h
+index d75e783..0363f33 100644
+--- a/include/llvm/Analysis/TargetLibraryInfo.h
++++ b/include/llvm/Analysis/TargetLibraryInfo.h
+@@ -19,6 +19,26 @@
+ #include "llvm/IR/PassManager.h"
+ #include "llvm/Pass.h"
+ 
++#undef fopen64
++#undef fseeko64
++#undef fstat64
++#undef fstatvfs64
++#undef ftello64
++#undef lstat64
++#undef stat64
++#undef tmpfile64
++#undef F_GETLK64
++#undef F_SETLK64
++#undef F_SETLKW64
++#undef flock64
++#undef open64
++#undef openat64
++#undef creat64
++#undef lockf64
++#undef posix_fadvise64
++#undef posix_fallocate64
++#undef off64_t
++
+ namespace llvm {
+ template <typename T> class ArrayRef;
+ 

@@ -59,9 +59,16 @@ RUN git clone https://github.com/just-containers/musl-cross-make.git /src/musl-c
     make clean && \
     cd /
 
-RUN curl -R -L -o /src/musl-1.1.18.tar.gz https://www.musl-libc.org/releases/musl-1.1.18.tar.gz && \
-    echo "d017ee5d01aec0c522a1330fdff06b1e428cb409e1db819cc4935d5da4a5a118  /src/musl-1.1.18.tar.gz" | sha256sum -c && \
-    tar xf /src/musl-1.1.18.tar.gz -C /src && \
+RUN ln -s /src/musl-cross-make/sources/binutils-2.28.1.tar.bz2 /src/binutils-2.28.1.tar.bz2 && \
+    ln -s /src/musl-cross-make/sources/gcc-4.9.4.tar.bz2 /src/gcc-4.9.4.tar.bz2 && \
+    ln -s /src/musl-cross-make/sources/gmp-6.1.2.tar.bz2 /src/gmp-6.1.2.tar.bz2 && \
+    ln -s /src/musl-cross-make/sources/isl-0.18.tar.bz2 /src/isl-0.18.tar.bz2 && \
+    ln -s /src/musl-cross-make/sources/linux-4.4.10.tar.xz /src/linux-4.4.10.tar.xz && \
+    ln -s /src/musl-cross-make/sources/mpfr-3.1.6.tar.bz2 /src/mpfr-3.1.6.tar.bz2 && \
+    ln -s /src/musl-cross-make/sources/mpc-1.0.3.tar.gz /src/mpc-1.0.3.tar.gz && \
+    ln -s /src/musl-cross-make/sources/musl-1.1.18.tar.gz /src/musl-1.1.18.tar.gz
+
+RUN tar xf /src/musl-1.1.18.tar.gz -C /src && \
     cd /src/musl-1.1.18 && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     CROSS_COMPOILE="x86_64-pc-linux-musl-" \
@@ -119,18 +126,11 @@ RUN curl -R -L -o /src/zlib-1.2.11.tar.gz https://zlib.net/zlib-1.2.11.tar.gz &&
     cd / && \
     rm -rf /src/zlib-cross /tmp/zlib-1.2.11.pkg
 
-RUN curl -R -L -o /src/gcc-4.9.4.tar.bz2 https://ftp.gnu.org/gnu/gcc/gcc-4.9.4/gcc-4.9.4.tar.bz2 && \
-    curl -R -L -o /src/mpfr-3.1.6.tar.xz http://www.mpfr.org/mpfr-3.1.6/mpfr-3.1.6.tar.xz && \
-    curl -R -L -o /src/mpc-1.0.3.tar.gz ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz && \
-    curl -R -L -o /src/gmp-6.1.2.tar.xz https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz && \
-    curl -R -L -o /src/isl-0.18.tar.xz http://isl.gforge.inria.fr/isl-0.18.tar.xz && \
-    exit 0
-
 RUN tar xf /src/gcc-4.9.4.tar.bz2 -C /src && \
-    tar xf /src/mpfr-3.1.6.tar.xz -C /src && \
+    tar xf /src/mpfr-3.1.6.tar.bz2 -C /src && \
     tar xf /src/mpc-1.0.3.tar.gz -C /src && \
-    tar xf /src/gmp-6.1.2.tar.xz -C /src && \
-    tar xf /src/isl-0.18.tar.xz -C /src && \
+    tar xf /src/gmp-6.1.2.tar.bz2 -C /src && \
+    tar xf /src/isl-0.18.tar.bz2 -C /src && \
     mv /src/mpfr-3.1.6 /src/gcc-4.9.4/mpfr && \
     mv /src/mpc-1.0.3 /src/gcc-4.9.4/mpc && \
     mv /src/gmp-6.1.2 /src/gcc-4.9.4/gmp && \
@@ -171,9 +171,7 @@ RUN mkdir /src/gcc-build && \
     tar vc $(ls) | xz > /opt/root/var/cache/pm/"gcc-bundle@4.9.4.txz" && \
     cd /
 
-RUN curl -R -L -o /src/binutils-2.28.1.tar.xz https://ftp.gnu.org/gnu/binutils/binutils-2.28.1.tar.xz && \
-    echo "16328a906e55a3c633854beec8e9e255a639b366436470b4f6245eb0d2fde942  /src/binutils-2.28.1.tar.xz" | sha256sum -c && \
-    tar xf /src/binutils-2.28.1.tar.xz -C /src && \
+RUN tar xf /src/binutils-2.28.1.tar.bz2 -C /src && \
     mkdir /src/binutils-cross && \
     cd /src/binutils-cross && \
     PATH="/opt/gcc-cross/bin:$PATH" \
@@ -302,9 +300,7 @@ RUN curl -R -L -o /src/attr-2.4.47.src.tar.gz https://download.savannah.nongnu.o
       --target=x86_64-pc-linux-musl \
       --host=x86_64-pc-linux-musl && \
     INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make -j$(nproc) && \
-    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install && \
-    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install-dev && \
-    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install-lib && \
+    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install install-dev install-lib && \
     make clean && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     INSTALL_USER=root INSTALL_GROUP=root \
@@ -316,9 +312,7 @@ RUN curl -R -L -o /src/attr-2.4.47.src.tar.gz https://download.savannah.nongnu.o
       --target=x86_64-pc-linux-musl \
       --host=x86_64-pc-linux-musl && \
     INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make -j$(nproc) && \
-    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/attr-2.4.47.pkg" install && \
-    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/attr-2.4.47.pkg" install-dev && \
-    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/attr-2.4.47.pkg" install-lib && \
+    INSTALL_USER=root INSTALL_GROUP=root PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/attr-2.4.47.pkg" install install-dev install-lib && \
     find /opt/gcc-cross -name '*.la' -delete && \
     find /tmp/attr-2.4.47.pkg -name '*.la' -delete && \
     cd /tmp/attr-2.4.47.pkg && \
@@ -338,9 +332,7 @@ RUN curl -R -L -o /src/acl-2.2.52.src.tar.gz https://download.savannah.nongnu.or
       --target=x86_64-pc-linux-musl \
       --host=x86_64-pc-linux-musl && \
     PATH="/opt/gcc-cross/bin:$PATH" make -j$(nproc) && \
-    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install && \
-    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install-dev && \
-    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install-lib && \
+    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/opt/gcc-cross" install install-dev install-lib && \
     make clean && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     CFLAGS="-g0 -Os" \
@@ -351,9 +343,7 @@ RUN curl -R -L -o /src/acl-2.2.52.src.tar.gz https://download.savannah.nongnu.or
       --target=x86_64-pc-linux-musl \
       --host=x86_64-pc-linux-musl && \
     PATH="/opt/gcc-cross/bin:$PATH" make -j$(nproc) && \
-    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/acl-2.2.52.pkg" install && \
-    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/acl-2.2.52.pkg" install-dev && \
-    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/acl-2.2.52.pkg" install-lib && \
+    PATH="/opt/gcc-cross/bin:$PATH" make DESTDIR="/tmp/acl-2.2.52.pkg" install install-dev install-lib && \
     mv /opt/gcc-cross/x86_64-pc-linux-musl/libexec/libacl.a /opt/gcc-cross/x86_64-pc-linux-musl/lib/libacl.a && \
     rm /opt/gcc-cross/x86_64-pc-linux-musl/libexec/libacl.so && \
     find /opt/gcc-cross -name '*.la' -delete && \
@@ -641,54 +631,50 @@ RUN curl -R -L -o /src/tar-1.30.tar.xz https://ftp.gnu.org/gnu/tar/tar-1.30.tar.
     cd / && \
     rm -rf /src/tar-1.30
 
-RUN curl -R -L -o /src/libutf-20170901.tgz https://9fans.github.io/plan9port/unix/libutf.tgz && \
-    echo "262a902f622dcd28e05b8a4be10da0aa3899050d0be8f4a71780eed6b2ea65ca  /src/libutf-20170901.tgz" | sha256sum -c && \
-    tar xf /src/libutf-20170901.tgz -C /src && \
+RUN curl -R -L -o /src/libutf.tgz https://9fans.github.io/plan9port/unix/libutf.tgz && \
+    tar xf /src/libutf.tgz -C /src && \
     cd /src/libutf && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make PREFIX=/opt/gcc-cross/x86_64-pc-linux-musl CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
     PATH="/opt/gcc-cross/bin:$PATH" \
-    make PREFIX=/tmp/libutf-20170901.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
-    cd /tmp/libutf-20170901.pkg && \
-    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libutf@20170901.txz" && \
+    make PREFIX=/tmp/libutf-2.0.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
+    cd /tmp/libutf-2.0.pkg && \
+    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libutf@2.0.txz" && \
     cd / && \
     rm -rf /src/libutf
 
-RUN curl -R -L -o /src/libfmt-20170901.tgz https://9fans.github.io/plan9port/unix/libfmt.tgz && \
-    echo "4e26c943c7efbce8deebfd750a40ca5cef05a37649d4ed394548dcdc4ee1ce32  /src/libfmt-20170901.tgz" | sha256sum -c && \
-    tar xf /src/libfmt-20170901.tgz -C /src && \
+RUN curl -R -L -o /src/libfmt.tgz https://9fans.github.io/plan9port/unix/libfmt.tgz && \
+    tar xf /src/libfmt.tgz -C /src && \
     cd /src/libfmt && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make PREFIX=/opt/gcc-cross/x86_64-pc-linux-musl CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
     PATH="/opt/gcc-cross/bin:$PATH" \
-    make PREFIX=/tmp/libfmt-20170901.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
-    cd /tmp/libfmt-20170901.pkg && \
-    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libfmt@20170901.txz" && \
+    make PREFIX=/tmp/libfmt-2.0.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
+    cd /tmp/libfmt-2.0.pkg && \
+    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libfmt@2.0.txz" && \
     cd / && \
     rm -rf /src/libfmt
 
-RUN curl -R -L -o /src/libbio-20170901.tgz https://9fans.github.io/plan9port/unix/libbio.tgz && \
-    echo "22c79ceb92cd3367ef91f5a74491f5bd8412c32cdf8a1a897ca97a199376df06  /src/libbio-20170901.tgz" | sha256sum -c && \
-    tar xf /src/libbio-20170901.tgz -C /src && \
+RUN curl -R -L -o /src/libbio.tgz https://9fans.github.io/plan9port/unix/libbio.tgz && \
+    tar xf /src/libbio.tgz -C /src && \
     cd /src/libbio && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make PREFIX=/opt/gcc-cross/x86_64-pc-linux-musl CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
     PATH="/opt/gcc-cross/bin:$PATH" \
-    make PREFIX=/tmp/libbio-20170901.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
-    cd /tmp/libbio-20170901.pkg && \
-    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libbio@20170901.txz" && \
+    make PREFIX=/tmp/libbio-2.0.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
+    cd /tmp/libbio-2.0.pkg && \
+    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libbio@2.0.txz" && \
     cd / && \
     rm -rf /src/libbio
 
-RUN curl -R -L -o /src/libregexp9-20170901.tgz https://9fans.github.io/plan9port/unix/libregexp9.tgz && \
-    echo "73cf14c81e0705c65135e57dd29c16b23cfb115f842da4ffe446f22fa4fddde1  /src/libregexp9-20170901.tgz" | sha256sum -c && \
-    tar xf /src/libregexp9-20170901.tgz -C /src && \
+RUN curl -R -L -o /src/libregexp9.tgz https://9fans.github.io/plan9port/unix/libregexp9.tgz && \
+    tar xf /src/libregexp9.tgz -C /src && \
     cd /src/libregexp && \
     mv regcomp.c regcomp.c.orig && \
     echo "#include <stddef.h>" > regcomp.c && \
@@ -699,24 +685,23 @@ RUN curl -R -L -o /src/libregexp9-20170901.tgz https://9fans.github.io/plan9port
     PATH="/opt/gcc-cross/bin:$PATH" \
     make PREFIX=/opt/gcc-cross/x86_64-pc-linux-musl CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
     PATH="/opt/gcc-cross/bin:$PATH" \
-    make PREFIX=/tmp/libregexp9-20170901.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
-    cd /tmp/libregexp9-20170901.pkg && \
-    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libregexp9@20170901.txz" && \
+    make PREFIX=/tmp/libregexp9-2.0.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
+    cd /tmp/libregexp9-2.0.pkg && \
+    tar vc $(ls) | xz > /opt/root/var/cache/pm/"libregexp9@2.0.txz" && \
     cd / && \
     rm -rf /src/libregexp
 
-RUN curl -R -L -o /src/mk-20170901.tgz https://9fans.github.io/plan9port/unix/mk.tgz && \
-    echo "88b29c3132f5beea15d77b7330d8caa1e2c892c719557570cfe5d2473f460f52  /src/mk-20170901.tgz" | sha256sum -c && \
-    tar xf /src/mk-20170901.tgz -C /src && \
+RUN curl -R -L -o /src/mk.tgz https://9fans.github.io/plan9port/unix/mk.tgz && \
+    tar xf /src/mk.tgz -C /src && \
     cd /src/mk && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar && \
     PATH="/opt/gcc-cross/bin:$PATH" \
     make PREFIX=/opt/gcc-cross/x86_64-pc-linux-musl CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
     PATH="/opt/gcc-cross/bin:$PATH" \
-    make PREFIX=/tmp/mk-20170901.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
-    cd /tmp/mk-20170901.pkg && \
-    tar vc $(ls) | xz > /opt/root/var/cache/pm/"mk@20170901.txz" && \
+    make PREFIX=/tmp/mk-2.0.pkg/usr CC=x86_64-pc-linux-musl-gcc AR=x86_64-pc-linux-musl-ar install && \
+    cd /tmp/mk-2.0.pkg && \
+    tar vc $(ls) | xz > /opt/root/var/cache/pm/"mk@2.0.txz" && \
     cd / && \
     rm -rf /src/mk
 
@@ -1124,7 +1109,7 @@ RUN mkdir -p /tmp/basefs-0.0.0.pkg/etc && \
     ln -s usr/bin sbin && \
     ln -s lib usr/lib64 && \
     ln -s usr/lib lib64 && \
-    cp /src/ports/basefs/files/etc/* etc/ && \
+    cp -r /src/ports/basefs/files/etc/* etc/ && \
     tar vc $(ls) | xz > /opt/root/var/cache/pm/"basefs@0.0.0.txz" && \
     cd /
 
@@ -1164,7 +1149,7 @@ RUN curl -R -L -o /src/pm-1.2.tar.bz2 "http://dl.z3bra.org/releases/pm-1.2.tar.b
     ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'make@4.2.1.txz' && \
     ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'findutils@4.6.0.txz' && \
     ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'tar@1.30.txz' && \
-    ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'mk@20170901.txz' && \
+    ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'mk@2.0.txz' && \
     ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'pigz@2.4.txz' && \
     ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'patch@2.7.5.txz' && \
     ROOT=/opt/root DATA=/opt/root/var/db/pm /src/pm-1.2/pm -v -f -a 'm4@1.4.18.txz' && \
@@ -1187,4 +1172,480 @@ RUN curl -R -L -o /src/pm-1.2.tar.bz2 "http://dl.z3bra.org/releases/pm-1.2.tar.b
 
 FROM scratch
 COPY --from=0 /opt/root /
+COPY --from=0 /src /src
 
+RUN curl -R -L -O /src/file-5.32.tar.gz ftp://ftp.astron.com/pub/file/file-5.32.tar.gz && \
+    echo "8639dc4d1b21e232285cd483604afc4a6ee810710e00e579dbe9591681722b50  /src/file-5.32.tar.gz" | sha256sum -c && \
+    tar xf /src/file-5.32.tar.gz -C /src && \
+    cd /src/file-5.32 && \
+    ./configure \
+      --prefix=/usr && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/file-5.32.pkg install && \
+    find /tmp/file-5.32.pkg -name '*.la' -delete && \
+    cd /tmp/file-5.32.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"file@5.32.txz" && \
+    cd /
+
+RUN pm -vfa /var/cache/pm/"file@5.32.txz" && \
+    rm /var/cache/pm/"file@5.32.txz"
+
+RUN mkdir -p /src && \
+    git clone https://github.com/jprjr/mingw-cross-make.git /src/mingw-cross-make && \
+    cd /src/mingw-cross-make && \
+    mkdir -p sources && \
+    for s in /src/musl-cross-make/sources/* ; do \
+        cp -v "${s}" sources/ ; \
+    done && \
+    ls -lh sources && \
+    echo "COMMON_CONFIG += --disable-nls" > config.mak && \
+    echo "COMMON_CONFIG += CFLAGS=\"-g0 -Os\" CXXFLAGS=\"-g0 -Os\" LDFLAGS=\"-s\"" >> config.mak && \
+    echo "GCC_CONFIG += --enable-languages=c,c++" >> config.mak && \
+    echo "GCC_CONFIG += --disable-libquadmath --disable-decimal-float" >> config.mak && \
+    echo "GCC_CONFIG += --disable-multilib --with-system-zlib" >> config.mak && \
+    echo "ZLIB_VER = 1.2.11" >> config.mak && \
+    echo "BINUTILS_VER = 2.28.1" >> config.mak && \
+    echo "GCC_VER = 4.9.4" >> config.mak && \
+    echo "MINGW_VER = v5.0.3" >> config.mak && \
+    echo "MUSL_VER = 1.1.18" >> config.mak && \
+    echo "GMP_VER = 6.1.2" >> config.mak && \
+    echo "MPC_VER = 1.0.3" >> config.mak && \
+    echo "MPFR_VER = 3.1.6" >> config.mak && \
+    echo "ISL_VER = 0.18" >> config.mak && \
+    make \
+      TARGET=x86_64-w64-mingw32 \
+      OUTPUT="/tmp/x86_64-w64-mingw32-gcc-4.9.4.pkg/usr" install && \
+    make clean && \
+    make \
+      TARGET=i686-w64-mingw32 \
+      OUTPUT="/tmp/i686-w64-mingw32-gcc-4.9.4.pkg/usr" install && \
+    make clean && \
+    find /tmp/x86_64-w64-mingw32-gcc-4.9.4.pkg -name '*.la' -delete && \
+    cd /tmp/x86_64-w64-mingw32-gcc-4.9.4.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"x86_64-w64-mingw32-gcc-bundle@4.9.4.txz" && \
+    find /tmp/i686-w64-mingw32-gcc-4.9.4.pkg -name '*.la' -delete && \
+    cd /tmp/i686-w64-mingw32-gcc-4.9.4.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"i686-w64-mingw32-gcc-bundle@4.9.4.txz" && \
+    cd /
+
+RUN pm -vfa /var/cache/pm/"x86_64-w64-mingw32-gcc-bundle@4.9.4.txz" && \
+    pm -vfa /var/cache/pm/"i686-w64-mingw32-gcc-bundle@4.9.4.txz" && \
+    rm /var/cache/pm/"x86_64-w64-mingw32-gcc-bundle@4.9.4.txz" && \
+    rm /var/cache/pm/"i686-w64-mingw32-gcc-bundle@4.9.4.txz"
+
+RUN curl -R -L -o /src/cmake-3.10.1.tar.gz https://cmake.org/files/v3.10/cmake-3.10.1.tar.gz && \
+    echo "7be36ee24b0f5928251b644d29f5ff268330a916944ef4a75e23ba01e7573284  /src/cmake-3.10.1.tar.gz" | sha256sum -c && \
+    tar xf /src/cmake-3.10.1.tar.gz -C /src && \
+    cd /src/cmake-3.10.1 && \
+    ./configure \
+      --prefix=/usr \
+      --mandir=/usr/share/man \
+      --system-curl \
+      --system-zlib \
+      --system-bzip2 \
+      --system-liblzma \
+      --system-libarchive && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/cmake-3.10.1.pkg install && \
+    find /tmp/cmake-3.10.1.pkg -name '*.la' -delete && \
+    cd /tmp/cmake-3.10.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"cmake@3.10.1.txz" && \
+    cd /
+
+RUN pm -vfa /var/cache/pm/"cmake@3.10.1.txz" && \
+    rm /var/cache/pm/"cmake@3.10.1.txz"
+
+RUN curl -R -L -o /src/Python-2.7.14.tar.xz https://www.python.org/ftp/python/2.7.14/Python-2.7.14.tar.xz && \
+    echo "71ffb26e09e78650e424929b2b457b9c912ac216576e6bd9e7d204ed03296a66  /src/Python-2.7.14.tar.xz" | sha256sum -c && \
+    tar xf /src/Python-2.7.14.tar.xz -C /src && \
+    cd /src/Python-2.7.14 && \
+    ./configure \
+      --prefix=/usr && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/python-2.7.14.pkg install && \
+    find /tmp/python-2.7.14.pkg -name '*.la' -delete && \
+    cd /tmp/python-2.7.14.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"python@2.7.14.txz" && \
+    cd /
+
+RUN pm -vfa /var/cache/pm/"python@2.7.14.txz" && \
+    rm /var/cache/pm/"python@2.7.14.txz"
+
+COPY libffi-patches /src/libffi-patches
+
+RUN curl -R -L -o /src/libffi-3.2.1.tar.gz ftp://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz && \
+    echo "d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37  /src/libffi-3.2.1.tar.gz" | sha256sum -c && \
+    tar xf /src/libffi-3.2.1.tar.gz -C /src && \
+    cd /src/libffi-3.2.1 && \
+    for f in /src/libffi-patches/*.diff ; do \
+        patch -p1 -i "${f}" ; \
+    done && \
+    ./configure \
+      --prefix=/usr \
+      --host=x86_64-pc-linux-musl \
+      --build=x86_64-pc-linux-musl \
+      --target=x86_64-pc-linux-musl \
+      --libdir=/usr/lib && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/libffi-3.2.1.pkg install && \
+    find /tmp/libffi-3.2.1.pkg -name '*.la' -delete && \
+    cd /tmp/libffi-3.2.1.pkg && \
+    mkdir -p usr/include && \
+    mv usr/lib/libffi-3.2.1/include/*.h usr/include/ && \
+    mv usr/lib64/* usr/lib/ && \
+    rmdir usr/lib/libffi-3.2.1/include && \
+    rmdir usr/lib/libffi-3.2.1 && \
+    rmdir usr/lib64 && \
+    sed -i -e '/^includedir=/{s,=.*,=/usr/include,g}' \
+            usr/lib/pkgconfig/libffi.pc && \
+    tar vc $(ls) | xz > /var/cache/pm/"libffi@3.2.1.txz" && \
+    cd /
+
+RUN pm -vfa /var/cache/pm/"libffi@3.2.1.txz" && \
+    rm /var/cache/pm/"libffi@3.2.1.txz"
+
+RUN curl -R -L -o /src/llvm-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/llvm-5.0.1.src.tar.xz" && \
+    curl -R -L -o /src/cfe-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/cfe-5.0.1.src.tar.xz" && \
+    curl -R -L -o /src/compiler-rt-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/compiler-rt-5.0.1.src.tar.xz" && \
+    curl -R -L -o /src/libcxx-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/libcxx-5.0.1.src.tar.xz" && \
+    curl -R -L -o /src/libcxxabi-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/libcxxabi-5.0.1.src.tar.xz" && \
+    curl -R -L -o /src/libunwind-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/libunwind-5.0.1.src.tar.xz" && \
+    curl -R -L -o /src/lld-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/lld-5.0.1.src.tar.xz" && \
+    curl -R -L -o /src/clang-tools-extra-5.0.1.src.tar.xz "http://releases.llvm.org/5.0.1/clang-tools-extra-5.0.1.src.tar.xz" && \
+    echo "135f6c9b0cd2da1aff2250e065946258eb699777888df39ca5a5b4fe5e23d0ff  /src/cfe-5.0.1.src.tar.xz" | sha256sum -c && \
+    echo "9aada1f9d673226846c3399d13fab6bba4bfd38bcfe8def5ee7b0ec24f8cd225  /src/clang-tools-extra-5.0.1.src.tar.xz" | sha256sum -c && \
+    echo "4edd1417f457a9b3f0eb88082530490edf3cf6a7335cdce8ecbc5d3e16a895da  /src/compiler-rt-5.0.1.src.tar.xz" | sha256sum -c && \
+    echo "fa8f99dd2bde109daa3276d529851a3bce5718d46ce1c5d0806f46caa3e57c00  /src/libcxx-5.0.1.src.tar.xz" | sha256sum -c && \
+    echo "5a25152cb7f21e3c223ad36a1022faeb8a5ac27c9e75936a5ae2d3ac48f6e854  /src/libcxxabi-5.0.1.src.tar.xz" | sha256sum -c && \
+    echo "6bbfbf6679435b858bd74bdf080386d084a76dfbf233fb6e47b2c28e0872d0fe  /src/libunwind-5.0.1.src.tar.xz" | sha256sum -c && \
+    echo "d5b36c0005824f07ab093616bdff247f3da817cae2c51371e1d1473af717d895  /src/lld-5.0.1.src.tar.xz" | sha256sum -c && \
+    echo "5fa7489fc0225b11821cab0362f5813a05f2bcf2533e8a4ea9c9c860168807b0  /src/llvm-5.0.1.src.tar.xz" | sha256sum -c
+
+COPY llvm-patches /tmp/llvm-patches
+
+RUN tar xf /src/llvm-5.0.1.src.tar.xz -C /src && \
+    tar xf /src/cfe-5.0.1.src.tar.xz -C /src && \
+    tar xf /src/compiler-rt-5.0.1.src.tar.xz -C /src && \
+    tar xf /src/libcxx-5.0.1.src.tar.xz -C /src && \
+    tar xf /src/libcxxabi-5.0.1.src.tar.xz -C /src && \
+    tar xf /src/libunwind-5.0.1.src.tar.xz -C /src && \
+    tar xf /src/lld-5.0.1.src.tar.xz -C /src && \
+    tar xf /src/clang-tools-extra-5.0.1.src.tar.xz -C /src && \
+    mv /src/cfe-5.0.1.src /src/llvm-5.0.1.src/tools/clang && \
+    mv /src/clang-tools-extra-5.0.1.src /src/llvm-5.0.1.src/tools/clang/tools/extra && \
+    mv /src/lld-5.0.1.src /src/llvm-5.0.1.src/tools/lld && \
+    mv /src/compiler-rt-5.0.1.src /src/llvm-5.0.1.src/projects/compiler-rt && \
+    mv /src/libcxx-5.0.1.src /src/llvm-5.0.1.src/projects/libcxx && \
+    mv /src/libcxxabi-5.0.1.src /src/llvm-5.0.1.src/projects/libcxxabi && \
+    mv /src/libunwind-5.0.1.src /src/llvm-5.0.1.src/projects/libunwind && \
+    cd /src/llvm-5.0.1.src && \
+    for f in /tmp/llvm-patches/*.diff ; do \
+        patch -p1 -i "${f}" ; \
+    done
+
+# basic llvm+clang, uses libstdc++, libgcc, etc
+RUN mkdir -p /src/llvm-build1 && \
+    cd /src/llvm-build1 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=gcc \
+      -DCMAKE_CXX_COMPILER=g++ \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DLLVM_TOOL_LIBCXXABI_BUILD=OFF \
+      -DLLVM_TOOL_LIBCXX_BUILD=OFF \
+      -DLLVM_TOOL_LIBUNWIND_BUILD=OFF \
+      -DLLVM_TOOL_COMPILER_RT_BUILD=OFF \
+      -DLLVM_TOOL_LLDB_BUILD=OFF \
+      -DLLVM_ENABLE_ASSERTIONS=ON \
+      -DLLVM_ENABLE_LLD=OFF \
+      -DLLVM_ENABLE_FFI=ON \
+      -DLLVM_ENABLE_LIBCXX=OFF \
+      -DLLVM_ENABLE_PIC=ON \
+      -DLLVM_ENABLE_RTTI=ON \
+      -DLLVM_ENABLE_SPHINX=OFF \
+      -DLLVM_ENABLE_TERMINFO=OFF \
+      -DLLVM_ENABLE_ZLIB=ON \
+      -DLLVM_TARGET_ARCH="X86" \
+      -DLLVM_TARGETS_TO_BUILD="X86" \
+      -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-musl" \
+      -DGCC_INSTALL_PREFIX="/usr" \
+      -DLLVM_BUILD_LLVM_DYLIB=ON \
+      -DLLVM_LINK_LLVM_DYLIB=ON \
+      -DCLANG_TOOL_EXTRA_BUILD=OFF \
+      -DLLVM_TOOL_CLANG_TOOLS_EXTRA_BUILD=OFF \
+      -DCLANG_TOOLS_EXTRA_INCLUDE_DOCS=OFF \
+      -DCLANG_HAVE_LIBXML=OFF \
+      /src/llvm-5.0.1.src && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/llvm-5.0.1.pkg install && \
+    find /tmp/llvm-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/llvm-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"llvm@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/llvm-build1 /tmp/llvm-5.0.1.pkg
+
+RUN pm -vfa /var/cache/pm/"llvm@5.0.1.txz" && \
+    rm /var/cache/pm/"llvm@5.0.1.txz"
+
+RUN mkdir -p /src/libunwind-build1 && \
+    cd /src/libunwind-build1 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_C_FLAGS="-g0 -Os" \
+      -DCMAKE_CXX_FLAGS="-g0 -Os" \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DLIBUNWIND_ENABLE_SHARED=OFF \
+      -DLLVM_PATH=/src/llvm-5.0.1.src \
+      /src/llvm-5.0.1.src/projects/libunwind && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/libunwind-5.0.1.pkg install && \
+    find /tmp/libunwind-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/libunwind-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"libunwind@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/libunwind-build1 /tmp/libunwind-5.0.1.pkg
+
+RUN pm -vfa /var/cache/pm/"libunwind@5.0.1.txz" && \
+    rm /var/cache/pm/"libunwind@5.0.1.txz"
+
+# build temp libcxxrt to build libcxx
+RUN curl -R -L -o /src/libcxxrt-master.tar.gz https://github.com/pathscale/libcxxrt/archive/master.tar.gz && \
+    tar xf /src/libcxxrt-master.tar.gz -C /src && \
+    mkdir -p /src/libcxxrt-build && \
+    cd /src/libcxxrt-build && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_C_FLAGS="-fPIC" \
+      -DCMAKE_CXX_FLAGS="-fPIC" \
+      /src/libcxxrt-master && \
+    make -j$(nproc) && \
+    mkdir -p /tmp/libcxxrt-master.pkg/usr/lib && \
+    cp -a lib/libcxxrt.* /tmp/libcxxrt-master.pkg/usr/lib && \
+    find /tmp/libcxxrt-master.pkg -name '*.la' -delete && \
+    cd /tmp/libcxxrt-master.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"libcxxrt@master.txz" && \
+    cd / && \
+    rm -rf /src/libcxxrt-build /tmp/libcxxrt-master.pkg
+
+RUN pm -vfa /var/cache/pm/"libcxxrt@master.txz" && \
+    rm /var/cache/pm/"libcxxrt@master.txz"
+
+# build libcxx against libcxxrt
+RUN mkdir -p /src/libcxx-build1 && \
+    cd /src/libcxx-build1 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_C_FLAGS="-g0 -Os" \
+      -DCMAKE_CXX_FLAGS="-g0 -Os" \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DLIBCXX_HAS_MUSL_LIBC=ON \
+      -DLIBCXX_HAS_GCC_S_LIB=OFF \
+      -DLIBCXX_CXX_ABI=libcxxrt \
+      -DLIBCXX_CXX_ABI_INCLUDE_PATHS="/src/libcxxrt-master/src" \
+      -DLLVM_PATH=/src/llvm-5.0.1.src \
+      /src/llvm-5.0.1.src/projects/libcxx && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/libcxx-5.0.1.pkg install && \
+    find /tmp/libcxx-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/libcxx-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"libcxx@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/libcxx-build1 /tmp/libcxx-5.0.1.pkg
+
+RUN pm -vfa /var/cache/pm/"libcxx@5.0.1.txz" && \
+    rm /var/cache/pm/"libcxx@5.0.1.txz"
+
+# build libcxxabi against libcxx
+RUN mkdir -p /src/libcxxabi-build1 && \
+    cd /src/libcxxabi-build1 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_C_FLAGS="-g0 -Os" \
+      -DCMAKE_CXX_FLAGS="-g0 -Os" \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--whole-archive -lunwind -Wl,--no-whole-archive" \
+      -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
+      -DLIBCXXABI_LIBCXX_INCLUDES=/src/llvm-5.0.1.src/projects/libcxx/include \
+      -DLIBCXXABI_HAS_CXA_THREAD_ATEXIT_IMPL=OFF \
+      -DLLVM_PATH=/src/llvm-5.0.1.src \
+      /src/llvm-5.0.1.src/projects/libcxxabi && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/libcxxabi-5.0.1.pkg install && \
+    find /tmp/libcxxabi-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/libcxxabi-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"libcxxabi@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/libcxxabi-build1 /tmp/libcxxabi-5.0.1.pkg
+
+RUN pm -vd libcxxrt && \
+    pm -vfa /var/cache/pm/"libcxxabi@5.0.1.txz" && \
+    rm /var/cache/pm/"libcxxabi@5.0.1.txz"
+
+# build libcxx against libcxxabi
+RUN mkdir -p /src/libcxx-build2 && \
+    cd /src/libcxx-build2 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_C_FLAGS="-g0 -Os" \
+      -DCMAKE_CXX_FLAGS="-g0 -Os" \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DLIBCXX_HAS_MUSL_LIBC=ON \
+      -DLIBCXX_HAS_GCC_S_LIB=OFF \
+      -DLIBCXX_CXX_ABI=libcxxabi \
+      -DLIBCXX_CXX_ABI_INCLUDE_PATHS="/src/llvm-5.0.1.src/projects/libcxxabi/include" \
+      -DLLVM_PATH=/src/llvm-5.0.1.src \
+      /src/llvm-5.0.1.src/projects/libcxx && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/libcxx-5.0.1.pkg install && \
+    find /tmp/libcxx-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/libcxx-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"libcxx@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/libcxx-build2 /tmp/libcxx-5.0.1.pkg
+
+RUN pm -vd libcxx && \
+    pm -vfa /var/cache/pm/"libcxx@5.0.1.txz" && \
+    rm /var/cache/pm/"libcxx@5.0.1.txz"
+
+# Now we have libc++ and libc++abi
+
+RUN mkdir -p /src/compiler-rt-build1 && \
+    cd /src/compiler-rt-build1 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_C_FLAGS="-g0 -Os" \
+      -DCMAKE_CXX_FLAGS="-g0 -Os" \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DCOMPILER_RT_INSTALL_PATH="/usr/lib/clang/5.0.1" \
+      -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+      -DCOMPILER_RT_BUILD_XRAY=OFF \
+      -DLLVM_PATH=/src/llvm-5.0.1.src \
+      /src/llvm-5.0.1.src/projects/compiler-rt && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/compiler-rt-5.0.1.pkg install && \
+    find /tmp/compiler-rt-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/compiler-rt-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"compiler-rt@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/compiler-rt-build1 /tmp/compiler-rt-5.0.1.pkg
+
+RUN pm -vfa /var/cache/pm/"compiler-rt@5.0.1.txz" && \
+    rm /var/cache/pm/"compiler-rt@5.0.1.txz"
+
+# build an llvm+clang that *uses* libc++ etc by default
+# (but still requires libstdc++, libgcc etc at runtime)
+RUN mkdir -p /src/llvm-build2 && \
+    cd /src/llvm-build2 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DLLVM_TOOL_LIBCXXABI_BUILD=OFF \
+      -DLLVM_TOOL_LIBCXX_BUILD=OFF \
+      -DLLVM_TOOL_LIBUNWIND_BUILD=OFF \
+      -DLLVM_TOOL_COMPILER_RT_BUILD=OFF \
+      -DLLVM_TOOL_LLDB_BUILD=OFF \
+      -DLLVM_ENABLE_ASSERTIONS=ON \
+      -DLLVM_ENABLE_LLD=OFF \
+      -DLLVM_ENABLE_FFI=ON \
+      -DLLVM_ENABLE_LIBCXX=OFF \
+      -DLLVM_ENABLE_PIC=ON \
+      -DLLVM_ENABLE_RTTI=ON \
+      -DLLVM_ENABLE_SPHINX=OFF \
+      -DLLVM_ENABLE_TERMINFO=OFF \
+      -DLLVM_ENABLE_ZLIB=ON \
+      -DLLVM_TARGET_ARCH="X86" \
+      -DLLVM_TARGETS_TO_BUILD="X86" \
+      -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-musl" \
+      -DGCC_INSTALL_PREFIX="/usr" \
+      -DLLVM_BUILD_LLVM_DYLIB=ON \
+      -DLLVM_LINK_LLVM_DYLIB=ON \
+      -DCLANG_DEFAULT_CXX_STDLIB=libc++ \
+      -DCLANG_DEFAULT_RTLIB=compiler-rt \
+      -DCLANG_TOOL_EXTRA_BUILD=OFF \
+      -DLLVM_TOOL_CLANG_TOOLS_EXTRA_BUILD=OFF \
+      -DCLANG_TOOLS_EXTRA_INCLUDE_DOCS=OFF \
+      -DCLANG_HAVE_LIBXML=OFF \
+      /src/llvm-5.0.1.src && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/llvm-5.0.1.pkg install && \
+    find /tmp/llvm-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/llvm-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"llvm@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/llvm-build2 /tmp/llvm-5.0.1.pkg
+
+RUN pm -d llvm && \
+    pm -vfa /var/cache/pm/"llvm@5.0.1.txz" && \
+    rm /var/cache/pm/"llvm@5.0.1.txz"
+
+# build an llvm+clang that *uses* libc++ etc by default,
+# also linked against libc++ etc
+RUN mkdir -p /src/llvm-build3 && \
+    cd /src/llvm-build3 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_SKIP_RPATH=ON \
+      -DLLVM_TOOL_LIBCXXABI_BUILD=OFF \
+      -DLLVM_TOOL_LIBCXX_BUILD=OFF \
+      -DLLVM_TOOL_LIBUNWIND_BUILD=OFF \
+      -DLLVM_TOOL_COMPILER_RT_BUILD=OFF \
+      -DLLVM_TOOL_LLDB_BUILD=OFF \
+      -DLLVM_TOOL_LLD_BUILD=ON \
+      -DLLVM_ENABLE_ASSERTIONS=ON \
+      -DLLVM_ENABLE_LLD=OFF \
+      -DLLVM_ENABLE_FFI=ON \
+      -DLLVM_ENABLE_LIBCXX=ON \
+      -DLLVM_ENABLE_PIC=ON \
+      -DLLVM_ENABLE_RTTI=ON \
+      -DLLVM_ENABLE_SPHINX=OFF \
+      -DLLVM_ENABLE_TERMINFO=OFF \
+      -DLLVM_ENABLE_ZLIB=ON \
+      -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-musl" \
+      -DGCC_INSTALL_PREFIX="/usr" \
+      -DLLVM_BUILD_LLVM_DYLIB=ON \
+      -DLLVM_LINK_LLVM_DYLIB=ON \
+      -DCLANG_DEFAULT_CXX_STDLIB=libc++ \
+      -DCLANG_DEFAULT_RTLIB=compiler-rt \
+      -DCLANG_TOOL_EXTRA_BUILD=OFF \
+      -DLLVM_TOOL_CLANG_TOOLS_EXTRA_BUILD=OFF \
+      -DCLANG_TOOLS_EXTRA_INCLUDE_DOCS=OFF \
+      -DCLANG_HAVE_LIBXML=OFF \
+      /src/llvm-5.0.1.src && \
+    make -j$(nproc) && \
+    make DESTDIR=/tmp/llvm-5.0.1.pkg install && \
+    find /tmp/llvm-5.0.1.pkg -name '*.la' -delete && \
+    cd /tmp/llvm-5.0.1.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"llvm@5.0.1.txz" && \
+    cd / && \
+    rm -rf /src/llvm-build3 /tmp/llvm-5.0.1.pkg
+
+RUN pm -d llvm && \
+    pm -vfa /var/cache/pm/"llvm@5.0.1.txz" && \
+    rm /var/cache/pm/"llvm@5.0.1.txz"
+
+RUN rm -rf /src/ports && rm -f /var/cache/pm/*

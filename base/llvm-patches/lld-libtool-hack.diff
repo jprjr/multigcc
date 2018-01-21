@@ -1,0 +1,13 @@
+diff --git a/tools/lld/lib/Config/Version.cpp b/tools/lld/lib/Config/Version.cpp
+index 2554475..2b694bb 100644
+--- a/tools/lld/lib/Config/Version.cpp
++++ b/tools/lld/lib/Config/Version.cpp
+@@ -38,6 +38,7 @@ static std::string getRepository() {
+ }
+ 
+ // Returns a version string, e.g., "LLD 4.0 (lld/trunk 284614)".
++// hack to make libtool happy
+ std::string lld::getLLDVersion() {
+-  return "LLD " + std::string(LLD_VERSION_STRING) + getRepository();
++  return "LLD (not GNU)" + std::string(LLD_VERSION_STRING) + getRepository();
+ }
