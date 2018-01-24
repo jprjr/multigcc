@@ -1174,7 +1174,7 @@ FROM scratch
 COPY --from=0 /opt/root /
 COPY --from=0 /src /src
 
-RUN curl -R -L -O /src/file-5.32.tar.gz ftp://ftp.astron.com/pub/file/file-5.32.tar.gz && \
+RUN curl -R -L -o /src/file-5.32.tar.gz ftp://ftp.astron.com/pub/file/file-5.32.tar.gz && \
     echo "8639dc4d1b21e232285cd483604afc4a6ee810710e00e579dbe9591681722b50  /src/file-5.32.tar.gz" | sha256sum -c && \
     tar xf /src/file-5.32.tar.gz -C /src && \
     cd /src/file-5.32 && \
@@ -1189,6 +1189,51 @@ RUN curl -R -L -O /src/file-5.32.tar.gz ftp://ftp.astron.com/pub/file/file-5.32.
 
 RUN pm -vfa /var/cache/pm/"file@5.32.txz" && \
     rm /var/cache/pm/"file@5.32.txz"
+
+RUN cd /src/musl-cross-make && \
+    echo "COMMON_CONFIG += --disable-nls" > config.mak && \
+    echo "COMMON_CONFIG += CFLAGS=\"-g0 -Os\" CXXFLAGS=\"-g0 -Os\" LDFLAGS=\"-s\"" >> config.mak && \
+    echo "GCC_CONFIG += --enable-languages=c,c++" >> config.mak && \
+    echo "GCC_CONFIG += --disable-libquadmath --disable-decimal-float" >> config.mak && \
+    echo "GCC_CONFIG += --disable-multilib --with-system-zlib" >> config.mak && \
+    echo "ZLIB_VER = 1.2.11" >> config.mak && \
+    echo "BINUTILS_VER = 2.28.1" >> config.mak && \
+    echo "GCC_VER = 4.9.4" >> config.mak && \
+    echo "MUSL_VER = 1.1.18" >> config.mak && \
+    echo "GMP_VER = 6.1.2" >> config.mak && \
+    echo "MPC_VER = 1.0.3" >> config.mak && \
+    echo "MPFR_VER = 3.1.6" >> config.mak && \
+    echo "ISL_VER = 0.18" >> config.mak && \
+    echo "LINUX_VER = 4.4.10" >> config.mak && \
+    make \
+      TARGET=i486-pc-linux-musl \
+      OUTPUT=/tmp/i486-pc-linux-musl-bundle-4.9.4.pkg/usr install && \
+    make clean && \
+    make \
+      TARGET=arm-linux-musleabi \
+      OUTPUT=/tmp/arm-linux-musleabi-bundle-4.9.4.pkg/usr install && \
+    make clean && \
+    make \
+      TARGET=arm-linux-musleabihf \
+      OUTPUT=/tmp/arm-linux-musleabihf-bundle-4.9.4.pkg/usr install && \
+    make clean && \
+    find /tmp/i486-pc-linux-musl-bundle-4.9.4.pkg -name '*.la' -delete && \
+    cd /tmp/i486-pc-linux-musl-bundle-4.9.4.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"i486-pc-linux-musl-gcc-bundle@4.9.4.txz" && \
+    find /tmp/arm-linux-musleabi-bundle-4.9.4.pkg -name '*.la' -delete && \
+    cd /tmp/arm-linux-musleabi-bundle-4.9.4.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"arm-linux-musleabi-gcc-bundle@4.9.4.txz" && \
+    find /tmp/arm-linux-musleabihf-bundle-4.9.4.pkg -name '*.la' -delete && \
+    cd /tmp/arm-linux-musleabihf-bundle-4.9.4.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"arm-linux-musleabihf-gcc-bundle@4.9.4.txz" && \
+    cd /
+
+RUN pm -vfa /var/cache/pm/"i486-pc-linux-musl-gcc-bundle@4.9.4.txz" && \
+    pm -vfa /var/cache/pm/"arm-linux-musleabi-gcc-bundle@4.9.4.txz" && \
+    pm -vfa /var/cache/pm/"arm-linux-musleabihf-gcc-bundle@4.9.4.txz" && \
+    rm /var/cache/pm/"i486-pc-linux-musl-gcc-bundle@4.9.4.txz" && \
+    rm /var/cache/pm/"arm-linux-musleabi-gcc-bundle@4.9.4.txz" && \
+    rm /var/cache/pm/"arm-linux-musleabihf-gcc-bundle@4.9.4.txz"
 
 RUN mkdir -p /src && \
     git clone https://github.com/jprjr/mingw-cross-make.git /src/mingw-cross-make && \
@@ -1647,5 +1692,36 @@ RUN mkdir -p /src/llvm-build3 && \
 RUN pm -d llvm && \
     pm -vfa /var/cache/pm/"llvm@5.0.1.txz" && \
     rm /var/cache/pm/"llvm@5.0.1.txz"
+
+COPY go-1.4.3-patches /src/go-1.4.3-patches
+
+RUN curl -R -L -o /src/go1.4.3.src.tar.gz https://storage.googleapis.com/golang/go1.4.3.src.tar.gz && \
+    echo "9947fc705b0b841b5938c48b22dc33e9647ec0752bae66e50278df4f23f64959  /src/go1.4.3.src.tar.gz" | sha256sum -c && \
+    mkdir -p /var/tmp && \
+    tar xf /src/go1.4.3.src.tar.gz -C /src && \
+    cd /src/go && \
+    for p in /src/go-1.4.3-patches/*; do \
+        patch -p1 -i "${p}" ; \
+    done && \
+    cd src && \
+    GOPATH="/src/go" \
+    GOROOT="/src/go" \
+    GOBIN="/src/go/bin" \
+    GOROOT_FINAL=/usr/lib/go \
+    CGO_ENABLED=0 \
+    ./make.bash && \
+    cd /src/go && \
+    mkdir -p /tmp/go-1.4.3.pkg/usr/lib/go && \
+    mkdir -p /tmp/go-1.4.3.pkg/usr/bin && \
+    cp -a bin pkg src /tmp/go-1.4.3.pkg/usr/lib/go/ && \
+    ln -sf /usr/lib/go/bin/go /tmp/go-1.4.3.pkg/usr/bin/go && \
+    ln -sf /usr/lib/go/bin/gofmt /tmp/go-1.4.3.pkg/usr/bin/gofmt && \
+    cd /tmp/go-1.4.3.pkg && \
+    tar vc $(ls) | xz > /var/cache/pm/"go@1.4.3.txz" && \
+    cd / && \
+    rm -rf /src/go /tmp/go-1.4.3.pkg
+
+RUN pm -vfa /var/cache/pm/"go@1.4.3.txz" && \
+    rm /var/cache/pm/"go@1.4.3.txz"
 
 RUN rm -rf /src/ports && rm -f /var/cache/pm/*
