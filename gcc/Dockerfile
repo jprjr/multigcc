@@ -1,16 +1,13 @@
 FROM jprjr/multigcc:base
 
+ARG GCCPKG
+
 RUN mkdir -p /src /opt/root && \
     git clone https://github.com/jprjr/multigcc-ports.git /src/ports && \
     cd /src/ports && \
-    rm -rf gcc-5.5 gcc-6.4 gcc-7.2 && \
-    rm -rf x86_64-w64-mingw32-gcc-5.5 x86_64-w64-mingw32-gcc-6.4 x86_64-w64-mingw32-gcc-7.2 && \
-    rm -rf i686-w64-mingw32-gcc-5.5 i686-w64-mingw32-gcc-6.4 i686-w64-mingw32-gcc-7.2 && \
-    rm -f  gcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc && \
-    mv gcc-4.9 gcc && \
-    mv x86_64-w64-mingw32-gcc-4.9 x86_64-w64-mingw32-gcc && \
-    mv i686-w64-mingw32-gcc-4.9 i686-w64-mingw32-gcc && \
-    mk all
+    mk $GCCPKG && \
+    mk bootstrap && \
+    mk cross-packages
 
 RUN ROOT=/opt/root DATA=/opt/root/var/db/pm pm -fva /var/cache/repo/basefs@*.tgz && \
     rm /var/cache/repo/basefs@*.tgz
@@ -25,7 +22,9 @@ COPY --from=0 /src/ports /src/ports
 
 RUN mkdir -p /opt/root && \
     cd /src/ports && \
-    mk all
+    mk $GCCPKG && \
+    mk bootstrap && \
+    mk cross-packages
 
 RUN ROOT=/opt/root DATA=/opt/root/var/db/pm pm -fva /var/cache/repo/basefs@*.tgz && \
     rm /var/cache/repo/basefs@*.tgz
